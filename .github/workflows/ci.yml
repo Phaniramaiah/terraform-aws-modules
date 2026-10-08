@@ -1,0 +1,62 @@
+name: terraform
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        dir:
+          - modules/vpc
+          - modules/ecr
+          - modules/s3-bucket
+          - modules/alb
+          - modules/ecs-cluster
+          - modules/ecs-service
+          - examples/complete
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.13.x
+
+      - name: Format
+        run: terraform fmt -check -recursive -diff
+        working-directory: ${{ matrix.dir }}
+
+      - name: Init
+        run: terraform init -backend=false -input=false
+        working-directory: ${{ matrix.dir }}
+
+      - name: Validate
+        run: terraform validate
+        working-directory: ${{ matrix.dir }}
+
+  tflint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: terraform-linters/setup-tflint@v4
+      - run: tflint --init
+      - run: tflint --recursive --format compact
+
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Trivy IaC scan
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          scan-type: config
+          scan-ref: .
+          severity: HIGH,CRITICAL
+          exit-code: "0"

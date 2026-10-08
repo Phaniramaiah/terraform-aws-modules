@@ -1,0 +1,9 @@
+environment      = "dev"
+certificate_arn  = "arn:aws:acm:ap-south-1:123456789012:certificate/00000000-0000-0000-0000-000000000000"
+hosted_zone_name = "example.com"
+api_hostname     = "api.dev.example.com"
+api_image_tag    = "3f2c1ab"
+
+api_secret_arns = {
+  DATABASE_URL = "arn:aws:secretsmanager:ap-south-1:123456789012:secret:shop/dev/database-url"
+}
